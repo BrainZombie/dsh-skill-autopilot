@@ -26,6 +26,7 @@ import { runPass, runAudit, normalizeConfig, createState } from '../lib/pipeline
 
 let failures = 0;
 let checks = 0;
+let skipped = 0;
 function check(name, condition, detail = '') {
     checks += 1;
     if (condition) {
@@ -34,6 +35,16 @@ function check(name, condition, detail = '') {
     }
     failures += 1;
     console.log(`  FAIL ${name}${detail ? ` — ${detail}` : ''}`);
+}
+
+/**
+ * A section that needs a live DSH install cannot run on a bare CI runner. It is
+ * skipped there instead of failing, and the skip is counted so the summary still
+ * tells the truth about coverage.
+ */
+function skip(name, why) {
+    skipped += 1;
+    console.log(`  skip ${name} — ${why}`);
 }
 
 const policy = {
@@ -133,10 +144,15 @@ console.log('\n[3] plugin-skill inventory');
 {
     const dshHome = process.env.DSH_HOME?.trim() || join(process.env.USERPROFILE ?? '', '.dsh');
     const roots = [join(dshHome, 'profiles', 'web', 'node_modules')];
-    const found = await scanPluginSkills(roots, { limit: 400 });
-    check('扫描到插件技能', found.length > 0, `${found.length} 条`);
-    if (found.length > 0) {
-        console.log(`       样例: ${found.slice(0, 4).map((skill) => `${skill.name}(${skill.package})`).join(', ')}`);
+    // 插件技能来自「本机已装的插件」：干净机器上没有 profile，这里没有可验的东西。
+    if (roots.some((root) => existsSync(root)) === false) {
+        skip('扫描到插件技能', '本机没有 profiles/web/node_modules（干净机器/CI）');
+    } else {
+        const found = await scanPluginSkills(roots, { limit: 400 });
+        check('扫描到插件技能', found.length > 0, `${found.length} 条`);
+        if (found.length > 0) {
+            console.log(`       样例: ${found.slice(0, 4).map((skill) => `${skill.name}(${skill.package})`).join(', ')}`);
+        }
     }
     const close = similarity('deck-rebuild-brief PPT 返修 归因 澄清 验收', 'deck-rebuild PPT 返修 归因 澄清 字段 验收');
     const far = similarity('deck-rebuild-brief PPT 返修 验收', 'postgres 索引 慢查询 优化');
@@ -377,6 +393,14 @@ try {
 
     const versions = await readdir(join(tempMnemon, 'skills', 'versions')).catch(() => []);
     check('版本快照目录可读', Array.isArray(versions));
+} catch (error) {
+    // 端到端段需要真实的 mnemon 技能数据源（可选 peer）。没有它就整段跳过，
+    // 而不是让没有 DSH 安装的机器把这个仓库判红。
+    if (/dsh-mnemon-source-skills/.test(String(error?.message ?? error))) {
+        skip('isolated end-to-end', '未安装 dsh-mnemon-source-skills（可选 peer）');
+    } else {
+        throw error;
+    }
 } finally {
     delete process.env.DSH_HOME;
     delete process.env.DSH_AGENTS_HOME;
@@ -399,5 +423,5 @@ if (process.argv.includes('--live')) {
     }
 }
 
-console.log(`\n${failures === 0 ? 'PASS' : 'FAIL'}: ${checks - failures}/${checks} checks passed`);
+console.log(`\n${failures === 0 ? 'PASS' : 'FAIL'}: ${checks - failures}/${checks} checks passed${skipped > 0 ? ` (+${skipped} skipped)` : ''}`);
 process.exit(failures === 0 ? 0 : 1);
