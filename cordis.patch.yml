@@ -1,0 +1,40 @@
+# dsh bundle patch: inserts this plugin into a profile's layer stack.
+# 所有键都可省略；下面写的是默认值,便于直接改。
+- insert:
+    - id: skill-autopilot
+      name: dsh-skill-autopilot
+      config:
+        # 总开关：false 时工具仍注册,但任何一次运行都会直接返回 disabled。
+        enabled: true
+        # mnemon 数据根目录(其下应有 skills/ledger.json)。留空 = %USERPROFILE%\.mnemon
+        mnemonDataDir: ''
+        # 新技能写入的 DSH 技能根：user-dsh(~/.dsh/skills) | user-agents(~/.agents/skills)
+        targetRoot: user-dsh
+        # 审查模型。provider/model 留空 = 用宿主默认模型(设置页里选的那个)。
+        reviewer:
+          provider: ''
+          model: ''
+          maxTokens: 4096
+        # 准入策略(反碎片的核心参数,改这里即可调紧/调松)
+        policy:
+          # 低于该置信度的建议直接丢弃,不送给模型审(默认 0.8)
+          minConfidence: 0.8
+          minModelConfidence: 0.5
+          # 每次运行最多「新建」多少个技能;归并/更新不受此限
+          maxNewPerRun: 2
+          # 与已有技能相似度达到该值 → 强制归并进已有技能,不许新建
+          mergeSimilarity: 0.45
+          # SKILL.md 正文字符上限(超过视为把流水账搬进来,拒绝)
+          maxBodyChars: 16000
+          # description 字符上限(系统提示里的技能索引会截断,过长等于没有触发词)
+          descriptionMaxChars: 240
+          # 必须至少有一个强信号(procedure/correction/directive/skill-gap)
+          requireStrongSignal: true
+          # 归并时保留原技能正文的上限,超过就要求模型显式瘦身
+          maxMergedBodyChars: 24000
+        # 默认 dry-run：只出决策不写盘。true 才会真的打包+应用。
+        autoApply: false
+        # 后台定时跑（分钟）。0 = 不跑。>0 时只做 review,apply 仍由 autoApply 决定。
+        intervalMinutes: 0
+        # 决策日志目录。留空 = $DSH_HOME/storages/skill-autopilot
+        logDir: ''

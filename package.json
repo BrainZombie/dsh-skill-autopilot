@@ -1,0 +1,59 @@
+{
+  "name": "dsh-skill-autopilot",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 技能进化自动审批插件:把 mnemon 技能进化的待处理建议交给配置好的大模型审查,按「反碎片 / 反重复 / 宁可归并」的准入策略决策,审查通过后打包成 SKILL.md 并直接落盘应用(含版本记录与回滚)。Skill-evolution autopilot for DSH: reviews pending evolution suggestions with your configured model, enforces an anti-fragmentation admission policy, then packages and applies the approved skill via the Skills Source (versioned, rollback-safe).",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrainZombie/dsh-skill-autopilot.git"
+  },
+  "homepage": "https://github.com/BrainZombie/dsh-skill-autopilot#readme",
+  "bugs": {
+    "url": "https://github.com/BrainZombie/dsh-skill-autopilot/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "skills",
+    "mnemon"
+  ],
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0"
+  },
+  "scripts": {
+    "test": "node test/selftest.mjs",
+    "test:contract": "node test/host-contract.mjs",
+    "doctor": "dsh-plugin doctor ."
+  },
+  "peerDependencies": {
+    "dsh-mnemon-source-skills": ">=0.4.0"
+  },
+  "peerDependenciesMeta": {
+    "dsh-mnemon-source-skills": {
+      "optional": true
+    }
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0-0"
+    }
+  }
+}
