@@ -134,12 +134,14 @@ dsh --profile web --dump-config | Select-String skill-autopilot
 ## 7. 验证
 
 ```bash
-node test/selftest.mjs          # 20 项：闸门/去重/打包/落盘（临时 ledger + 临时技能根，不动真实数据）
+node test/selftest.mjs          # 单元闸门/去重/打包/落盘（临时 ledger + 临时技能根，不动真实数据）
 node test/selftest.mjs --live   # 追加：只读真实 ledger，确认能读到 pending 与目录
 node test/host-contract.mjs     # 用真实 dsh-tools/dsh-llm 走一遍注册与一次 llm 组装调用
+dsh-plugin verify .             # 真打包、真安装、挂载检查
 ```
 
 `selftest` 从不碰 `~/.mnemon/skills` 与 `~/.dsh/skills`：它在 `%TEMP%` 下复制一份 ledger、建一个空的临时技能根，跑完即删。
+需要「本机已装 DSH / 已装 mnemon 数据源」的两段（插件技能扫描、隔离端到端）在没有安装的机器上自动 **skip** 而不是失败，所以 CI 只跑 `npm test`；`host-contract` 与 `verify` 需要真实宿主，请在装好 DSH 的机器上跑。
 
 ## 8. 风险与边界
 

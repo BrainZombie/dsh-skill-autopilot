@@ -1,5 +1,13 @@
 name: ci
 
+# `npm test` is fixture-based: the unit gates always run, and the two sections
+# that need a live install (plugin-skill inventory, isolated end-to-end against
+# the mnemon data source) skip themselves when that install is absent — a clean
+# runner is the normal case, not a failure.
+#
+# `node test/host-contract.mjs` and `dsh-plugin verify .` need a real DSH host
+# and are documented in README (Develop) instead.
+
 on:
   push:
     branches: [main]
@@ -13,9 +21,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Selftest
+      - name: Self test
         run: npm test
-      - name: Host contract
-        run: node test/host-contract.mjs
-      - name: Package check (pack, install the tarball, mount)
-        run: npx --yes dsh-plugin-toolkit@0.15.0 verify .
