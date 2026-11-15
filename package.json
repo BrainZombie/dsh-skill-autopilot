@@ -1,6 +1,6 @@
 {
   "name": "dsh-skill-autopilot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DeepSeek Harness 技能进化自动审批插件:把 mnemon 技能进化的待处理建议交给配置好的大模型审查,按「反碎片 / 反重复 / 宁可归并」的准入策略决策,审查通过后打包成 SKILL.md 并直接落盘应用(含版本记录与回滚)。Skill-evolution autopilot for DSH: reviews pending evolution suggestions with your configured model, enforces an anti-fragmentation admission policy, then packages and applies the approved skill via the Skills Source (versioned, rollback-safe).",
   "license": "MIT",
   "type": "module",
